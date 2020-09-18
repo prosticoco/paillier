@@ -96,10 +96,10 @@ func (pk *PublicKey) Encrypt(m *big.Int) (*big.Int, error) {
 		msg.Set(m)
 	}
 	
-	m.Exp(g, msg, pk.N2)
+	msg.Exp(g, msg, pk.N2)
 	r := getRandom(pk.N)
 	r.Exp(r, pk.N, pk.N2)
-	c := new(big.Int).Mul(m, r)
+	c := new(big.Int).Mul(msg, r)
 	return c.Mod(c, pk.N2), nil
 }
 
