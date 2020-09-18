@@ -80,22 +80,17 @@ func (pk *PublicKey) ToString() (string, string) {
 
 // Encrypt returns a IND-CPA secure ciphertext for the message `msg`
 func (pk *PublicKey) Encrypt(m *big.Int) (*big.Int, error) {
-	fmt.Println("TEEEEEST")
 	if m.Cmp(pk.N) != -1 {
 		return nil, fmt.Errorf("invalid plaintext")
 	}
-
-
 	g := new(big.Int)
 	msg := new(big.Int)
 	if m.Cmp(zero) == -1 {
 		g.ModInverse(pk.g,pk.N2)
 		msg.Neg(m)
-		fmt.Println("Negative")
 	}else{
 		g.Set(pk.g)
 		msg.Set(m)
-		fmt.Println("Non-Negative")
 	}
 	
 	msg.Exp(g, msg, pk.N2)
