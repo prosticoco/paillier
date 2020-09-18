@@ -91,9 +91,11 @@ func (pk *PublicKey) Encrypt(m *big.Int) (*big.Int, error) {
 	if m.Cmp(zero) == -1 {
 		g.ModInverse(pk.g,pk.N2)
 		msg.Neg(m)
+		fmt.Println("Negative")
 	}else{
 		g.Set(pk.g)
 		msg.Set(m)
+		fmt.Println("Non-Negative")
 	}
 	
 	msg.Exp(g, msg, pk.N2)
