@@ -75,7 +75,7 @@ func TestPublicKey_ToString(t *testing.T) {
 			if err != nil {
 				t.Errorf("PublicKey.ToString() %v", err)
 			}
-			_, err2 := pk2.Encrypt(int64(1))
+			_, err2 := pk2.Encrypt(new(big.Int).SetInt64(int64(1)))
 			if err2 != nil {
 				t.Errorf("PublicKey.ToString() invalid key info")
 			}
@@ -91,14 +91,13 @@ func TestPublicKey_Encrypt(t *testing.T) {
 		msg     int64
 		wantErr bool
 	}{
-		{"negative input, must return error", -1, true},
 		{"positive input, must return valid ciphertext", 1, false},
 		{"zero value, must return valid ciphertext", 0, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ct, err := pk.Encrypt(tt.msg)
+			ct, err := pk.Encrypt(new(big.Int).SetInt64(tt.msg))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PublicKey.Encrypt() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -115,7 +114,7 @@ func TestPublicKey_Encrypt(t *testing.T) {
 				t.Errorf("PublicKey.Encrypt() error = cannot decipher ciphertext (%v)", err)
 				return
 			}
-			if pt != tt.msg {
+			if pt.Int64() != tt.msg {
 				t.Errorf("PublicKey.Encrypt() error = ciphertext does not decipher to the original message (%v, %v)", pt, tt.msg)
 				return
 			}
@@ -140,7 +139,7 @@ func TestPrivateKey_Decrypt(t *testing.T) {
 		pk:     pk,
 	}
 
-	ct23, _ := pk.Encrypt(23)
+	ct23, _ := pk.Encrypt(new(big.Int).SetInt64(23))
 
 	tests := []struct {
 		name    string
@@ -163,14 +162,16 @@ func TestPrivateKey_Decrypt(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
+		t.Run(tt.name, func(t *testing.T) {		
 			got, err := sk.Decrypt(tt.ct)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PrivateKey.Decrypt() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if err != nil{
+				return
+			}
+			if got.Int64() != tt.want {
 				t.Errorf("PrivateKey.Decrypt() = %v, want %v", got, tt.want)
 			}
 		})

@@ -19,21 +19,21 @@ func (pk *PublicKey) Add(ct1, ct2 *big.Int) (*big.Int, error) {
 
 // MultPlaintext returns the ciphertext the will decipher to multiplication
 // of the plaintexts (i.e. if ct = Enc(m1), then Dec(MultPlaintext(ct, m2)) = m1 * m2 mod N)
-func (pk *PublicKey) MultPlaintext(ct *big.Int, msg int64) (*big.Int, error) {
+func (pk *PublicKey) MultPlaintext(ct *big.Int, msg *big.Int) (*big.Int, error) {
 	if ct == nil || ct.Cmp(zero) != 1 {
 		return nil, fmt.Errorf("invalid input")
 	}
-	return new(big.Int).Exp(ct, new(big.Int).SetInt64(msg), pk.N2), nil
+	return new(big.Int).Exp(ct, msg, pk.N2), nil
 }
 
 // AddPlaintext returns the ciphertext the will decipher to addition
 // of the plaintexts (i.e if ct = Enc(m1), then Dec(AddPlaintext(ct, m2)) = m1 + m2 mod N)
-func (pk *PublicKey) AddPlaintext(ct *big.Int, msg int64) (*big.Int, error) {
-	if ct == nil || ct.Cmp(zero) != 1 || msg < 0 {
+func (pk *PublicKey) AddPlaintext(ct *big.Int, msg *big.Int) (*big.Int, error) {
+	if ct == nil || ct.Cmp(zero) != 1 || msg.Cmp(zero) == -1 {
 		return nil, fmt.Errorf("invalid input")
 	}
 
-	ct2 := new(big.Int).Exp(pk.g, new(big.Int).SetInt64(msg), pk.N2)
+	ct2 := new(big.Int).Exp(pk.g, msg, pk.N2)
 	return ct2.Mod(ct2.Mul(ct2, ct), pk.N2), nil
 }
 
@@ -64,10 +64,9 @@ func (pk *PublicKey) Sub(ct1, ct2 *big.Int) *big.Int {
 
 // DivPlaintext returns the ciphertext the will decipher to division of the plaintexts
 // (i.e if ct = Enc(m1), then Dec(DivPlaintext(ct, m2)) = m1 / m2 mod N)
-func (pk *PublicKey) DivPlaintext(ct *big.Int, msg int64) (*big.Int, error) {
+func (pk *PublicKey) DivPlaintext(ct *big.Int, msg *big.Int) (*big.Int, error) {
 	if ct == nil || ct.Cmp(zero) != 1 {
 		return nil, fmt.Errorf("invalid input")
 	}
-	m := new(big.Int).SetInt64(msg)
-	return new(big.Int).Exp(ct, m.ModInverse(m, pk.N2), pk.N2), nil
+	return new(big.Int).Exp(ct, msg.ModInverse(msg, pk.N2), pk.N2), nil
 }

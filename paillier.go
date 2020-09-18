@@ -79,27 +79,35 @@ func (pk *PublicKey) ToString() (string, string) {
 }
 
 // Encrypt returns a IND-CPA secure ciphertext for the message `msg`
-func (pk *PublicKey) Encrypt(msg int64) (*big.Int, error) {
-	m := new(big.Int).SetInt64(msg)
+func (pk *PublicKey) Encrypt(m *big.Int) (*big.Int, error) {
 
-	if msg < 0 || m.Cmp(zero) == -1 || m.Cmp(pk.N) != -1 {
+	if m.Cmp(pk.N) != -1 {
 		return nil, fmt.Errorf("invalid plaintext")
 	}
 
+
+	g := new(big.Int)
+	msg := new(big.Int)
+	if m.Cmp(zero) == -1 {
+		g.ModInverse(pk.g,pk.N2)
+		msg.Neg(m)
+	}else{
+		g.Set(pk.g)
+		msg.Set(m)
+	}
+	
+	m.Exp(g, msg, pk.N2)
 	r := getRandom(pk.N)
 	r.Exp(r, pk.N, pk.N2)
-
-	m.Exp(pk.g, m, pk.N2)
-
 	c := new(big.Int).Mul(m, r)
 	return c.Mod(c, pk.N2), nil
 }
 
 // Decrypt returns the plaintext corresponding to the ciphertext (ct)
 // passed in the parameter
-func (sk *PrivateKey) Decrypt(ct *big.Int) (int64, error) {
+func (sk *PrivateKey) Decrypt(ct *big.Int) (*big.Int, error) {
 	if ct == nil || ct.Cmp(zero) != 1 {
-		return 0, fmt.Errorf("invalid ciphertext")
+		return nil, fmt.Errorf("invalid ciphertext")
 	}
 
 	// m = L(c^lambda mod n^2)*mu mod n
@@ -108,7 +116,7 @@ func (sk *PrivateKey) Decrypt(ct *big.Int) (int64, error) {
 	m.Mul(m, sk.mu)
 	m.Mod(m, sk.pk.N)
 
-	return m.Int64(), nil
+	return m, nil
 }
 
 // L (x,n) = (x-1)/n is the largest integer quocient `q` to satisfy (x-1) >= q*n
